@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_file
+from flask import Flask, render_template
 import subprocess
 import re
 
@@ -26,30 +26,17 @@ def get_network_password(network_name):
     except subprocess.CalledProcessError as e:
         return f"Error fetching password for {network_name}: {e}"
 
-def save_to_file(data, filename='network_passwords.txt'):
-    try:
-        with open(filename, 'w') as file:
-            file.write(data)
-    except Exception as e:
-        print(f"Error saving to file: {e}")
-
 @app.route('/')
-def home():
+def index():
     networks = get_networks()
     network_info = []
     if networks:
         for network in networks:
             password = get_network_password(network)
             network_info.append((network, password))
-        output = "\n".join([f"- {network}: {password}" for network, password in network_info])
-        save_to_file(output)
-    else:
-        network_info.append(("No networks found", ""))
+    
+    # Passing the network_info list to the template
     return render_template('index.html', network_info=network_info)
-
-@app.route('/download')
-def download_file():
-    return send_file('network_passwords.txt', as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)
